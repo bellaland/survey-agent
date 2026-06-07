@@ -1,0 +1,12 @@
+demographic:
+  age: "25-34"
+  gender: "Prefer not to say"
+  education: "Graduate degree"
+
+preferences:
+  default_language: "Python"
+  default_sentiment: "neutral"
+
+text_answers:
+  default_opinion: "I do not have a strong preference."
+  default_factual_fallback: "Unable to answer from available information."

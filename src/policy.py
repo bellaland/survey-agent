@@ -8,31 +8,30 @@ class Policy:
             return AnswerPlan(
                 qid=question.qid, action="continue", answer=None, policy="instruction"
             )
-        if question.type == "multiple_choice":
-            return AnswerPlan(
-                qid=question.qid,
-                action="select",
-                answer=question.options[0].value,
-                policy="default_multiple_choice",
-            )
-        if question.type == "slider":
-            return AnswerPlan(
-                qid=question.qid,
-                action="set_slider",
-                answer=50,
-                policy="default_slider",
-            )
-        if question.type == "text":
-            return AnswerPlan(
-                qid=question.qid,
-                action="type",
-                answer="Test response.",
-                policy="default_text",
-            )
+        action_map = {
+            "multiple_choice": "select",
+            "checkbox": "check",
+            "dropdown": "select",
+            "slider": "set_slider",
+            "text": "type",
+        }
+        action = action_map.get(question.type, "skip")
+        if question.category == "demographic":
+            policy_name = "demographic"
+        elif question.category == "factual":
+            policy_name = "factual"
+        elif question.category == "ai_disclosure":
+            policy_name = "identity_disclosure"
+        elif question.category == "attention_check":
+            policy_name = "attention_check"
+        elif question.category == "instruction":
+            policy_name = "follow_instruction"
+        else:
+            policy_name = f"default_{question.type}"
+
         return AnswerPlan(
             qid=question.qid,
-            action="skip",
+            action=action,
             answer=None,
-            policy="unsupported_question_type",
-            confidence=0.0,
+            policy=policy_name,
         )

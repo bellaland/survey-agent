@@ -69,12 +69,19 @@ class ToolsConfig(BaseModel):
     )
 
 
+class ProfileConfig(BaseModel):
+    demographic: dict[str, str] = Field(default_factory=dict)
+    preferences: dict[str, str] = Field(default_factory=dict)
+    text_answers: dict[str, str] = Field(default_factory=dict)
+
+
 class AppConfig(BaseModel):
     runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
     logging: LogConfig = Field(default_factory=LogConfig)
     storage: StorageConfig = Field(default_factory=StorageConfig)
     policies: PoliciesConfig = Field(default_factory=PoliciesConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    profile: ProfileConfig = Field(default_factory=ProfileConfig)
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -89,9 +96,11 @@ def load_config(config_dir: Path = CONFIG_DIR) -> AppConfig:
     config_data = load_yaml(config_dir / "config.yaml")
     policies_data = load_yaml(config_dir / "policies.yaml")
     tools_data = load_yaml(config_dir / "tools.yaml")
+    profile_data = load_yaml(config_dir / "profile.yaml")
     merged = {
         **config_data,
         "policies": policies_data,
         "tools": tools_data,
+        "profile": profile_data,
     }
     return AppConfig.model_validate(merged)
