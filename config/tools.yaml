@@ -1,0 +1,14 @@
+calculator:
+  enabled: true
+
+local_context:
+  enabled: true
+
+rag:
+  enabled: false
+
+llm:
+  enabled: false
+
+web_search:
+  enabled: false

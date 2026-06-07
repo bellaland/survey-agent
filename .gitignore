@@ -1,0 +1,9 @@
+.venv/
+.env
+logs/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+debug.html
+debug.png
+*.db

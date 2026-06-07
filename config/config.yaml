@@ -1,0 +1,18 @@
+runtime:
+  headless: false
+  submit_final: false
+  max_pages: 100
+  timeout_seconds: 30
+
+
+logging:
+  level: INFO
+  screenshot_dir: logs/screenshots
+  html_dir: logs/html
+  run_dir: logs/runs
+
+storage:
+  format: sqlite
+  db_path: logs/survey.db
+  screenshot_dir: logs/screenshots
+  html_dir: logs/html
