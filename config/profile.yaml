@@ -1,5 +1,6 @@
 demographic:
   age: "25-34"
+  age_number: "25"
   gender: "Prefer not to say"
   education: "Graduate degree"
 

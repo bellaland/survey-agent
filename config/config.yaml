@@ -1,6 +1,6 @@
 runtime:
   headless: false
-  submit_final: false
+  submit_final: true
   max_pages: 100
   timeout_seconds: 30
 

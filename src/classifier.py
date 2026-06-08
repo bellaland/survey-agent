@@ -14,6 +14,12 @@ class Classifier:
         s = question.input_summary
         text = question.text.lower()
 
+        if "page loaded" in text or "click the button to continue" in text:
+            return "instruction"
+
+        if "powered by qualtrics" in text and question.qid.startswith("body_page"):
+            return "instruction"
+
         if "side by side" in text:
             return "side_by_side"
 
@@ -32,6 +38,9 @@ class Classifier:
 
         if s.range_count > 0 or s.slider_count > 0:
             return "slider"
+
+        if s.text_input_count > 1:
+            return "form"
 
         if s.textarea_count > 0 or s.text_input_count > 0:
             return "text"

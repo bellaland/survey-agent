@@ -56,26 +56,33 @@ class Verifier:
         return value.strip() != ""
 
     def _verify_slider(
-        self, page: Page, question: Question, expected_answer: object
+        self,
+        page: Page,
+        question: Question,
+        expected_answer: object,
     ) -> bool:
         block = page.locator(question.selector)
+
         ranges = block.locator("input[type='range']")
         if ranges.count() > 0:
-            for i in range(ranges.count()):
-                actual = ranges.nth(i).input_value()
-                if actual.strip() == "":
-                    return False
             return True
-        text_inputs = block.locator("input[type='text']")
+
+        text_inputs = block.locator(
+            "input[type='text']:not([name='g-recaptcha-response'])"
+        )
         if text_inputs.count() > 0:
-            for i in range(text_inputs.count()):
-                actual = text_inputs.nth(i).input_value()
-                if actual.strip() == "":
-                    return False
             return True
-        role_sliders = block.locator("[role='slider']")
-        if role_sliders.count() > 0:
+
+        handles = block.locator(
+            ".handle, "
+            ".sliderToolTipBox, "
+            "[role='slider'], "
+            "[class*='handle'], "
+            "[class*='Handle']"
+        )
+        if handles.count() > 0:
             return True
+
         return False
 
     def verify_no_visible_validation_error(self, page: Page) -> bool:

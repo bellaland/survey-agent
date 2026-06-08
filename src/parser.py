@@ -84,8 +84,12 @@ class Parser:
         return InputSummary(
             radio_count=block.locator("input[type='radio']").count(),
             checkbox_count=block.locator("input[type='checkbox']").count(),
-            textarea_count=block.locator("textarea").count(),
-            text_input_count=block.locator("input[type='text']").count(),
+            textarea_count=block.locator(
+                "textarea:not([name='g-recaptcha-response'])"
+            ).count(),
+            text_input_count=block.locator(
+                "input[type='text']:not([name='g-recaptcha-response'])"
+            ).count(),
             range_count=block.locator("input[type='range']").count(),
             select_count=block.locator("select").count(),
             slider_count=block.locator("[role='slider'], .slider").count(),
