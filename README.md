@@ -24,4 +24,4 @@ python -m scripts.run
 
 Regarding reCAPTCHA or visual math/verification questions, the agent will pause and wait for a human to complete the question and press Enter in Command Line to continue with the agent.
 
-Screenshots are stored in logs/screenshots. Results are stored in logs/survey.db.
+Screenshots are stored in `logs/screenshots`. Results are stored in `logs/survey.db`.
