@@ -9,6 +9,7 @@ class InstructionParser:
     def extract_option_label(self, text: str) -> str | None:
         patterns = [
             r'choose ["\']?([A-Z])["\']?',
+            r'choose option ["\']?([A-Z])["\']?',
             r'select ["\']?([^"\'.]+)["\']?',
             r'pick ["\']?([^"\'.]+)["\']?',
         ]

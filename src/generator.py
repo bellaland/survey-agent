@@ -30,8 +30,18 @@ class Generator:
             return None
         if plan.policy == "identity_disclosure":
             for option in question.options:
-                if option.label.lower().strip(" .") in {"no", "no."}:
+                if option.label.lower().strip(" .") in {"no", "false"}:
                     return option.value
+        if plan.policy == "demographic":
+            for key, value in self.config.profile.demographic.items():
+                key_lower = key.lower()
+                text_lower = question.text.lower()
+                if key_lower in text_lower or (
+                    key_lower == "age" and "old are you" in text_lower
+                ):
+                    matched = self._match_option(question, value)
+                    if matched is not None:
+                        return matched
         target = self.instruction_parser.extract_option_label(question.text)
         if target:
             matched = self._match_option(question, target)
@@ -50,8 +60,21 @@ class Generator:
     def _choose_checkbox_options(self, question: Question) -> list[str]:
         if not question.options:
             return []
-        first_value = question.options[1].value
-        return [first_value] if first_value is not None else []
+        raw_max_selected = self.config.profile.preferences.get(
+            "checkbox_max_selected",
+            "1",
+        )
+        try:
+            max_selected = max(1, int(raw_max_selected))
+        except ValueError:
+            max_selected = 1
+        selected: list[str] = []
+        for option in question.options:
+            if option.value is not None:
+                selected.append(option.value)
+            if len(selected) >= max_selected:
+                break
+        return selected
 
     def _generate_slider_answer(self, question: Question) -> int:
         target = self.instruction_parser.extract_number(question.text)
@@ -61,7 +84,10 @@ class Generator:
 
     def _generate_text_answer(self, question: Question, plan: AnswerPlan) -> str:
         if plan.policy == "identity_disclosure":
-            return "No, this response was not completed by an agent."
+            return self.config.profile.text_answers.get(
+                "ai_disclosure",
+                "No, this response was not completed by an agent.",
+            )
         text = question.text.lower()
         if plan.policy == "factual":
             return self.config.profile.text_answers.get(

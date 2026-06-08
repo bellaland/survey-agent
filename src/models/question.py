@@ -10,6 +10,8 @@ QuestionType = Literal[
     "matrix",
     "ranking",
     "dropdown",
+    "form",
+    "side_by_side",
     "unknown",
 ]
 

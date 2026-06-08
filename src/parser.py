@@ -15,6 +15,22 @@ class Parser:
         if blocks.count() == 0:
             blocks = page.locator("[id^='QID'], .QuestionOuter")
         count = blocks.count()
+        if count == 0:
+            body_text = page.locator("body").inner_text().strip()
+            if body_text:
+                questions.append(
+                    Question(
+                        qid=f"body_page_{page_index}",
+                        text=body_text,
+                        selector="body",
+                        input_summary=self._extract_input_summary(page.locator("body")),
+                    )
+                )
+            return State(
+                page_index=page_index,
+                url=page.url,
+                questions=questions,
+            )
 
         for i in range(count):
             block = blocks.nth(i)
@@ -24,15 +40,16 @@ class Parser:
                 or f"question_{page_index}_{i}"
             )
             text = self._extract_question_text(block)
-            options = self._extract_options(block, qid, i)
-            required = self._extract_required(block)
             input_summary = self._extract_input_summary(block)
+            if self._should_skip_block(qid, text, input_summary):
+                continue
+            options = self._extract_options(block, qid, i)
             questions.append(
                 Question(
                     qid=qid,
                     text=text,
                     options=options,
-                    required=required,
+                    required=self._extract_required(block),
                     selector=self._build_selector(qid, i),
                     input_summary=input_summary,
                 )
@@ -49,6 +66,9 @@ class Parser:
             ".question-display",
             ".QuestionText",
             "[class*='question-display']",
+            ".q-question-text",
+            ".QuestionBody",
+            "[data-testid*='question']",
         ]
 
         for selector in selectors:
@@ -57,7 +77,43 @@ class Parser:
                 text = locator.first.inner_text().strip()
                 if text:
                     return text
-        return block.inner_text().strip().split("\n")[0]
+        text = block.inner_text().strip()
+        return text if text else ""
+
+    def _extract_input_summary(self, block) -> InputSummary:
+        return InputSummary(
+            radio_count=block.locator("input[type='radio']").count(),
+            checkbox_count=block.locator("input[type='checkbox']").count(),
+            textarea_count=block.locator("textarea").count(),
+            text_input_count=block.locator("input[type='text']").count(),
+            range_count=block.locator("input[type='range']").count(),
+            select_count=block.locator("select").count(),
+            slider_count=block.locator("[role='slider'], .slider").count(),
+            choice_count=block.locator(".choice").count(),
+        )
+
+    def _should_skip_block(
+        self, qid: str, text: str, input_summary: InputSummary
+    ) -> bool:
+        if qid.endswith("Separator"):
+            return True
+        if "-label" in qid:
+            return True
+        if "~" in qid:
+            return True
+        if text.strip():
+            return False
+        has_input = (
+            input_summary.radio_count > 0
+            or input_summary.checkbox_count > 0
+            or input_summary.textarea_count > 0
+            or input_summary.text_input_count > 0
+            or input_summary.range_count > 0
+            or input_summary.select_count > 0
+            or input_summary.slider_count > 0
+            or input_summary.choice_count > 0
+        )
+        return not has_input
 
     def _extract_options(self, block, qid: str, question_index: int) -> list[Option]:
         options: list[Option] = []
@@ -74,10 +130,30 @@ class Parser:
                     options.append(
                         Option(
                             label=label,
-                            selector=f".question >> nth={question_index} >> .choice >> nth={j}",
+                            selector=(
+                                f".question >> nth={question_index} "
+                                f">> .choice >> nth={j}"
+                            ),
                             value=label,
                         )
                     )
+            return options
+        selects = block.locator("select")
+        if selects.count() > 0:
+            select_options = selects.first.locator("option")
+            for j in range(select_options.count()):
+                option = select_options.nth(j)
+                label = option.inner_text().strip()
+                value = option.get_attribute("value") or label
+                if not label and not value:
+                    continue
+                options.append(
+                    Option(
+                        label=label,
+                        selector=f"#{qid} select option >> nth={j}",
+                        value=value,
+                    )
+                )
             return options
         labels = block.locator("label")
         for j in range(labels.count()):
@@ -108,18 +184,6 @@ class Parser:
         if block.locator("[required], [aria-required='true']").count() > 0:
             return True
         return False
-
-    def _extract_input_summary(self, block) -> InputSummary:
-        return InputSummary(
-            radio_count=block.locator("input[type='radio']").count(),
-            checkbox_count=block.locator("input[type='checkbox']").count(),
-            textarea_count=block.locator("textarea").count(),
-            text_input_count=block.locator("input[type='text']").count(),
-            range_count=block.locator("input[type='range']").count(),
-            select_count=block.locator("select").count(),
-            slider_count=block.locator("[role='slider'], .slider").count(),
-            choice_count=block.locator(".choice").count(),
-        )
 
     def _build_selector(self, qid: str, index: int) -> str:
         if qid.startswith("question_"):

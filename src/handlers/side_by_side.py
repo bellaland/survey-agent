@@ -4,7 +4,7 @@ from src.models.question import Question
 from src.handlers.handler import Handler
 
 
-class MatrixHandler(Handler):
+class SideBySideHandler(Handler):
     def fill(
         self,
         page: Page,
@@ -14,8 +14,6 @@ class MatrixHandler(Handler):
         block = page.locator(question.selector)
         radios = block.locator("input[type='radio']")
         count = radios.count()
-        if count == 0:
-            return
         names: list[str] = []
         for i in range(count):
             name = radios.nth(i).get_attribute("name")
@@ -38,3 +36,15 @@ class MatrixHandler(Handler):
                 }
                 """
             )
+        selects = block.locator("select")
+        for i in range(selects.count()):
+            select = selects.nth(i)
+            options = select.locator("option")
+            if options.count() <= 1:
+                continue
+            value = options.nth(1).get_attribute("value")
+            label = options.nth(1).inner_text().strip()
+            if value:
+                select.select_option(value=value)
+            elif label:
+                select.select_option(label=label)

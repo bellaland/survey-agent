@@ -1,4 +1,4 @@
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, sync_playwright
 
 from src.config import load_config
 from src.parser import Parser
@@ -89,10 +89,22 @@ class Runner:
                         )
                     if not self.verifier.verify_no_visible_validation_error(page):
                         raise RuntimeError("Visible validation error found before next")
-                    next_button = page.locator("#next-button")
-                    if next_button.count() == 0:
+                    next_button = self._find_next_button(page)
+                    if next_button is None:
+                        print("No next/submit button found. Ending run.")
                         status = "completed"
                         break
+                    button_text = next_button.inner_text().lower().strip()
+                    body_text = page.locator("body").inner_text().lower()
+                    if (
+                        "submit" in button_text
+                        or "finish" in button_text
+                        or "end of survey" in body_text
+                    ):
+                        if not self.config.runtime.submit_final:
+                            print("dry run: final submit blocked.")
+                            status = "dry_run_completed"
+                            break
                     old_text = page.locator("body").inner_text()[:200]
                     next_button.click()
                     page.wait_for_timeout(2000)
@@ -113,3 +125,43 @@ class Runner:
                 pages_completed=pages_completed,
             )
             self.storage.close()
+
+    def _find_next_button(self, page: Page):
+        selectors = [
+            "#next-button",
+            "#NextButton",
+            "button:has-text('Next')",
+            "button:has-text('Continue')",
+            "button:has-text('Submit')",
+            "input[type='submit']",
+            "input[value='Next']",
+            "input[value='Continue']",
+            "input[value='Submit']",
+            "button[aria-label*='Next']",
+            "button[aria-label*='next']",
+            "button[aria-label*='Continue']",
+            "button[aria-label*='continue']",
+        ]
+        for selector in selectors:
+            locator = page.locator(selector)
+            if locator.count() > 0 and locator.first.is_visible():
+                return locator.first
+        buttons = page.locator("button")
+        for i in range(buttons.count()):
+            button = buttons.nth(i)
+            if not button.is_visible():
+                continue
+            text = button.inner_text().strip()
+            if text in {"->", ">", ">"}:
+                return button
+        visible_buttons = []
+        for i in range(buttons.count()):
+            button = buttons.nth(i)
+            if button.is_visible():
+                box = button.bounding.box()
+                if box:
+                    visible_buttons.append((box["x"], button))
+        if visible_buttons:
+            visible_buttons.sort(key=lambda item: item[0])
+            return visible_buttons[-1][1]
+        return None

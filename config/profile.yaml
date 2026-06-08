@@ -6,8 +6,9 @@ demographic:
 preferences:
   default_language: "Python"
   default_sentiment: "neutral"
-  default_slider_value: "98"
+  default_slider_value: "50"
   optional_preference_order: "neutral,neither,no preference,prefer not"
+  checkbox_max_selected: "1"
 
 text_answers:
   default_opinion: "I do not have a strong preference."

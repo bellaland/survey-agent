@@ -3,6 +3,10 @@ from src.handlers.slider import SliderHandler
 from src.handlers.text import TextHandler
 from src.handlers.checkbox import CheckboxHandler
 from src.handlers.dropdown import DropdownHandler
+from src.handlers.form import FormHandler
+from src.handlers.matrix import MatrixHandler
+from src.handlers.ranking import RankingHandler
+from src.handlers.side_by_side import SideBySideHandler
 
 
 class Registry:
@@ -13,6 +17,10 @@ class Registry:
             "slider": SliderHandler(),
             "checkbox": CheckboxHandler(),
             "dropdown": DropdownHandler(),
+            "form": FormHandler(),
+            "matrix": MatrixHandler(),
+            "ranking": RankingHandler(),
+            "side_by_side": SideBySideHandler(),
         }
 
     def get(self, question_type: str):

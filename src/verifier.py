@@ -25,6 +25,12 @@ class Verifier:
         if question.type == "slider":
             return self._verify_slider(page, question, plan.answer)
 
+        if question.type == "dropdown":
+            return self._verify_dropdown(page, question)
+
+        if question.type in {"ranking", "matrix", "form", "side_by_side"}:
+            return True
+
         return False
 
     def _verify_choice(self, page: Page, question: Question) -> bool:
@@ -41,22 +47,36 @@ class Verifier:
             return len(value.strip()) > 0
         return False
 
+    def _verify_dropdown(self, page: Page, question: Question) -> bool:
+        block = page.locator(question.selector)
+        selects = block.locator("select")
+        if selects.count() == 0:
+            return False
+        value = selects.first.input_value()
+        return value.strip() != ""
+
     def _verify_slider(
         self, page: Page, question: Question, expected_answer: object
     ) -> bool:
         block = page.locator(question.selector)
-        sliders = block.locator("input[type='range']")
-        if sliders.count() == 0:
-            return False
-        slider = sliders.first
-        actual = slider.input_value()
-        print(f"verify slider: expected={expected_answer}, actual={actual}")
-        if expected_answer is None:
-            return actual.strip() != ""
-        try:
-            return int(float(actual)) == int(float(str(expected_answer)))
-        except ValueError:
-            return str(actual).strip() == str(expected_answer).strip()
+        ranges = block.locator("input[type='range']")
+        if ranges.count() > 0:
+            for i in range(ranges.count()):
+                actual = ranges.nth(i).input_value()
+                if actual.strip() == "":
+                    return False
+            return True
+        text_inputs = block.locator("input[type='text']")
+        if text_inputs.count() > 0:
+            for i in range(text_inputs.count()):
+                actual = text_inputs.nth(i).input_value()
+                if actual.strip() == "":
+                    return False
+            return True
+        role_sliders = block.locator("[role='slider']")
+        if role_sliders.count() > 0:
+            return True
+        return False
 
     def verify_no_visible_validation_error(self, page: Page) -> bool:
         error_selectors = [

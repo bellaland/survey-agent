@@ -1,4 +1,4 @@
 from src.runner import Runner
 
-URL = "https://chicagobooth.az1.qualtrics.com/jfe/form/SV_cRSvOqgeHKie1sG"
+URL = "https://qualtricsxmvrg7rhkkk.qualtrics.com/jfe/form/SV_3yKvy8CVTuDVf9k"
 Runner().run(URL)

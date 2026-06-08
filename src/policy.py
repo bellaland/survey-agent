@@ -14,6 +14,10 @@ class Policy:
             "dropdown": "select",
             "slider": "set_slider",
             "text": "type",
+            "ranking": "rank",
+            "matrix": "select",
+            "form": "type",
+            "side_by_side": "select",
         }
         action = action_map.get(question.type, "skip")
         if question.category == "demographic":

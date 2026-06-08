@@ -12,6 +12,23 @@ class Classifier:
 
     def _classify_type(self, question: Question) -> QuestionType:
         s = question.input_summary
+        text = question.text.lower()
+
+        if "side by side" in text:
+            return "side_by_side"
+
+        if (
+            "rank order" in text
+            or "please rank" in text
+            or "rank the following" in text
+        ):
+            return "ranking"
+
+        if "matrix table" in text or "rate the following" in text:
+            return "matrix"
+
+        if "form field" in text or "name and contact information" in text:
+            return "form"
 
         if s.range_count > 0 or s.slider_count > 0:
             return "slider"
@@ -35,8 +52,15 @@ class Classifier:
 
     def _classify_category(self, question: Question) -> QuestionCategory:
         text = question.text.lower()
+        if question.type == "instruction":
+            return "instruction"
 
         if "press 'next'" in text or "press next" in text:
+            return "instruction"
+
+        if question.type == "slider" and any(
+            k in text for k in ["navigate", "set", "number", "move"]
+        ):
             return "instruction"
 
         if any(
@@ -53,21 +77,26 @@ class Classifier:
         ):
             return "ai_disclosure"
 
-        if any(
-            k in text
-            for k in ["age", "gender", "income", "education", "race", "ethnicity"]
-        ):
+        demographic_keywords = [
+            "how old are you",
+            "what is your age",
+            "your age",
+            "age range",
+            "gender",
+            "income",
+            "education level",
+            "highest level of education",
+            "race",
+            "ethnicity",
+        ]
+
+        if any(k in text for k in demographic_keywords):
             return "demographic"
 
-        if any(k in text for k in ["calculate", "what is", "according to", "based on"]):
-            return "factual"
-
-        if question.type == "slider" and any(
-            k in text for k in ["navigate", "set", "number"]
+        if any(
+            k in text
+            for k in ["calculate", "what is 2", "what is 3", "based on the passage"]
         ):
-            return "instruction"
-
-        if question.type == "instruction":
-            return "instruction"
+            return "factual"
 
         return "opinion"
