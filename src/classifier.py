@@ -42,11 +42,13 @@ class Classifier:
         if any(
             k in text
             for k in [
-                "bot",
-                "ai",
+                "are you a bot",
+                "are you an ai",
                 "artificial intelligence",
                 "automated agent",
                 "chatgpt",
+                "large language model",
+                "did you use ai",
             ]
         ):
             return "ai_disclosure"

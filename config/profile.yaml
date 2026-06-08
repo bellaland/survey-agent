@@ -6,7 +6,10 @@ demographic:
 preferences:
   default_language: "Python"
   default_sentiment: "neutral"
+  default_slider_value: "98"
+  optional_preference_order: "neutral,neither,no preference,prefer not"
 
 text_answers:
   default_opinion: "I do not have a strong preference."
   default_factual_fallback: "Unable to answer from available information."
+  ai_disclosure: "No, this response was not completed by an agent."
